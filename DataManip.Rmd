@@ -15,14 +15,16 @@ library(tidyverse)
 ```{r}
 housing <- read_csv("housingAll.csv")
 
-n <- nrow(housing)
-max(housing$price)
+housing2 <- housing %>%
+  filter(type == "apartment", price <= 5000) %>%
+  select(-c(region, electric_vehicle_charge))
 
+n <- nrow(housing2)
 
 set.seed(790)
 index <- sample(n, 2000, replace = FALSE)
-housing_subset <- housing[index,]
-n_distinct(housing_subset$state)
+housing_subset <- housing2[index,]
+write.csv(housing_subset, "housingSubset.csv")
 ```
 
 ```{r}
@@ -39,7 +41,5 @@ table(housing_subset$comes_furnished)
 ```
 
 
-```{r}
 
-```
 
