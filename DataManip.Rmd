@@ -124,7 +124,7 @@ grid.arrange(p1, p2, p3, p4, p5, ncol = 2)
 ```{r Boxplots of Price by Level Two Vars}
 #scale_fill_manual(values = wes_palette("Moonrise2", n = 2)) 
 
-housing_subset2 <- na.omit(housing_subset)
+housing_subset2 <- na.omit(housing_subset) # DC has no governor
 housing_subset$DeathPenalty2 <- factor(housing_subset$DeathPenalty, levels = c(0,1))
 
 p1.2 <- ggplot(housing_subset2) + 
@@ -138,13 +138,42 @@ p2.2 <- ggplot(housing_subset) +
 grid.arrange(p1.2, p2.2, ncol = 1)
 ```
 
-```{r Boxplots of Price by Level Two Vars}
+```{r Levels One and Two}
 #scale_fill_manual(values = wes_palette("Moonrise2", n = 2)) 
 
 housing_subset3 <- subset(housing_subset, subset = sqfeet < 3500)
+
+# linetype isn't an ideal aesthetic here but it helps a little
 
 ggplot(housing_subset3, mapping = aes(y = price, x = sqfeet, group = as.factor(beds))) + 
   geom_point(aes(color = as.factor(beds))) +
   geom_smooth(aes(linetype = as.factor(beds)), method = "lm", se = FALSE, color = "black")
   labs(title = "Scatterplot of Sqft by Price") 
+  
+# not very important it seems  
+ggplot(housing_subset, mapping = aes(y = price, x = PctBlack)) +
+  geom_point()
+ 
+# DC has incredibly high popdensity, might lead to some outliers, let's try subsetting it out
+ggplot(housing_subset, mapping = aes(y = price, x = PopDensity)) +
+  geom_point()
+
+# as popdensity increases, price increases, likely because those are cities
+housing_subset4 <- subset(housing_subset, subset = state != "dc") %>%
+  group_by(state)
+ggplot(housing_subset4, mapping = aes(y = price, x = PopDensity)) +
+  geom_point() + 
+  geom_smooth(se = FALSE, method = "lm")
+
+# I have no idea what's happening here
+ggplot(housing_subset, mapping = aes(y = price, x = TaxRate)) +
+  geom_point() + 
+  geom_smooth(se = FALSE, method = "lm")
 ```
+
+```{r Hist of Price}
+# skewed right still, might need to log tranform anyway
+ggplot(housing_subset, mapping = aes(x = price)) +
+  geom_histogram()
+```
+
