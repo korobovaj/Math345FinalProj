@@ -15,3 +15,5 @@ library(tidyverse)
 ```{r}
 housing <- read_csv("housingAll.csv")
 ```
+
+
