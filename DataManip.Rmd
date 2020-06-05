@@ -40,6 +40,46 @@ write.csv(housing_subset, "housingSubset.csv")
 ```
 
 ## EDA Jaylin
+```{r}
+data <- read_csv("housingSubset.csv")
+ggplot(data) + geom_boxplot(aes(y = price, x = cats_allowed, group = cats_allowed))
+ggplot(data) + geom_boxplot(aes(y = price, x = dogs_allowed, group = dogs_allowed))
+ggplot(data) + geom_boxplot(aes(y = price, x = smoking_allowed, group = smoking_allowed))
+ggplot(data) + geom_boxplot(aes(y = price, x = wheelchair_access, group = wheelchair_access))
+ggplot(data) + geom_boxplot(aes(y = price, x = comes_furnished, group = comes_furnished))
+#none of these seem that important 
+
+ggplot(data, aes(x = beds, y = price)) + geom_point() + geom_jitter()
+```
+Should we take out all of the 0s? 
+
+```{r}
+ggplot(data) + geom_histogram(aes(x = price), color = "white", bins = 25)
+
+data %>%
+  filter(price != 0) %>%
+  ggplot() + geom_histogram(aes(x = log(price)), color = "white", bins = 25)
+```
+
+```{r}
+ggplot(data) + geom_point(aes(x = PopDensity, y = price))
+largePop <- data[which(data$PopDensity > 7500),]
+
+data[which(data$PopDensity > 7500),c(15, 18:20)] #population density in DC is ridiculous 
+
+data %>%
+  filter(state != "dc") %>%
+  ggplot() + geom_point(aes(x = PopDensity, y = price)) #slight positive correlation 
+```
+
+```{r}
+data %>%
+  group_by(`State Name`) %>%
+  summarize(MedianPrice = median(price)) %>%
+  ggplot() + geom_bar(aes(x = reorder(`State Name`, MedianPrice), y = MedianPrice), stat = "identity") + coord_flip()
+``` 
+Top 5 states: DC, Hawaii, New Jersey, New Hampshire, California
+Bottom 5 states: Kansas, Missouri, Oklahoma, West Virginia, Mississippi 
 
 ## EDA Jenna
 
