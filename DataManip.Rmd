@@ -13,17 +13,6 @@ library(tidyverse)
 # Data Manipulation and EDA
 
 ```{r}
-housing <- read_csv("housingAll.csv")
-
-housing2 <- housing %>%
-  filter(type == "apartment", price <= 5000) %>%
-  select(-c(region, electric_vehicle_charge))
-
-n <- nrow(housing2)
-
-set.seed(790)
-index <- sample(n, 2000, replace = FALSE)
-housing_subset <- housing2[index,]
 write.csv(housing_subset, "housingSubset.csv")
 ```
 
@@ -82,4 +71,8 @@ Top 5 states: DC, Hawaii, New Jersey, New Hampshire, California
 Bottom 5 states: Kansas, Missouri, Oklahoma, West Virginia, Mississippi 
 
 ## EDA Jenna
+
+```{r}
+
+```
 
