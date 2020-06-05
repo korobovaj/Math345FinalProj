@@ -39,3 +39,6 @@ write.csv(housing_subset, "housingSubset.csv")
  table(housing_subset$comes_furnished)
 ```
 
+## EDA Jaylin
+
+## EDA Jenna
