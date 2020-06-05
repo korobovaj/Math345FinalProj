@@ -14,10 +14,6 @@ library(tidyverse)
 
 ```{r}
 housing <- read_csv("housingAll.csv")
-```
-
-```{r}
-housing <- read_csv("housingAll.csv")
 
 housing2 <- housing %>%
   filter(type == "apartment", price <= 5000) %>%
@@ -30,3 +26,16 @@ index <- sample(n, 2000, replace = FALSE)
 housing_subset <- housing2[index,]
 write.csv(housing_subset, "housingSubset.csv")
 ```
+
+```{r}
+ table(housing_subset$type)
+ ggplot(housing_subset) + geom_histogram(aes(x = price))
+ housing_subset <- housing_subset %>% filter(price < 5000)
+
+ table(housing_subset$cats_allowed)
+ table(housing_subset$dogs_allowed)
+ table(housing_subset$smoking_allowed)
+ table(housing_subset$wheelchair_access)
+ table(housing_subset$comes_furnished)
+```
+
