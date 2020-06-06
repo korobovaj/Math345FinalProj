@@ -171,10 +171,10 @@ grid.arrange(p1, p2, p3, p4, p5, ncol = 2)
 ```{r Boxplots of Price by Level Two Vars}
 #scale_fill_manual(values = wes_palette("Moonrise2", n = 2)) 
 
-housing_subset2 <- na.omit(housing_subset) # DC has no governor
+housing_subset2.1 <- na.omit(housing_subset) # DC has no governor
 housing_subset$DeathPenalty2 <- factor(housing_subset$DeathPenalty, levels = c(0,1))
 
-p1.2 <- ggplot(housing_subset2) + 
+p1.2 <- ggplot(housing_subset2.1) + 
   geom_boxplot(mapping = aes(y = price, x = Governor)) + 
   labs(x = "Governor Political Party") 
 
@@ -220,7 +220,8 @@ ggplot(housing_subset, mapping = aes(y = price, x = TaxRate)) +
 
 ```{r Hist of Price}
 # skewed right still, might need to log tranform anyway
-ggplot(housing_subset, mapping = aes(x = price)) +
+ggplot(housing_subset, mapping = aes(x = log(price))) +
   geom_histogram()
 ```
+
 
