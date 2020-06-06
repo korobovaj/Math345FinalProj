@@ -203,7 +203,7 @@ housing.lm2 <- lm(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_al
 summary(housing.lm2)
 ```
 
-```{r}
+```{r Random Effets}
 housing.lmer <- lmer(log(price) ~ 1 + (1|state), data = housing_subset2)
 summary(housing.lmer)
 
@@ -230,3 +230,17 @@ hist(Dsim)
 abline(v = D)
 mean(Dsim >= D) # p-value is 1
 ```
+
+```{r Fixed Effects}
+housing.lmer.fix1 <- lmer(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack + (1|state), data = housing_subset2)
+summary(housing.lmer.fix1)
+
+# throw out wheelchair acess and death penalty
+housing.lmer.fix2 <- lmer(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed +  comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + PctWhite + PctBlack + (1|state), data = housing_subset2)
+summary(housing.lmer.fix2)
+
+# alt - null
+D <- 2*(logLik(housing.lmer.fix1)-logLik(housing.lmer.fix2))
+1-pchisq(D, 2) # prefer smaller model
+```
+
