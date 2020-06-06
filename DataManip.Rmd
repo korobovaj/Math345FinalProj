@@ -185,8 +185,10 @@ ggplot(housing_subset, mapping = aes(x = log(price))) +
 ## Preliminary Modeling
 
 ```{r}
-housing_subset2 <- housing_subset %>%
-  filter(price > 5)
+data2 <- data %>%
+  filter(price > 5) %>%
+  filter(state != "dc") %>%
+  mutate(pets_allowed = ifelse(cats_allowed == 1 & dogs_allowed == 1, 1, 0))
 
 
 housing.lm <- lm(log(price) ~ sqfeet + beds + baths + cats_allowed + dogs_allowed + smoking_allowed + wheelchair_access + comes_furnished + MedianIncome + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack, data = housing_subset2)
@@ -194,10 +196,6 @@ summary(housing.lm)
 cor(housing_subset2$cats_allowed, housing_subset2$dogs_allowed) #0.906
 cor(housing_subset2$beds, housing_subset2$sqfeet) #0.708
 cor(housing_subset2$beds, housing_subset2$baths) #0.64
-
-
-housing_subset2 <- housing_subset2 %>%
-  mutate(pets_allowed = ifelse(cats_allowed == 1 & dogs_allowed == 1, 1, 0))
 
 housing.lm2 <- lm(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + MedianIncome + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack, data = housing_subset2)
 summary(housing.lm2)
@@ -212,10 +210,11 @@ housing.lmer2 <- lmer(log(price) ~ sqfeet + beds + baths + pets_allowed + smokin
 housing.lmer3 <- lmer(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack + (sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished|state), data = housing_subset2)
 
 # after laura's suggestions
-housing.lmer4.1 <- lmer(log(price) ~ 1 + (1|state), data = housing_subset2)
-summary(housing.lmer)
+housing.lmer4.1 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + (1|state), data = data2)
+summary(housing.lmer4.1)
 
-housing.lmer4.2 <- lmer(log(price) ~ (1|state) + (sqfeet + beds + baths|state), data = housing_subset2)
+housing.lmer4.2 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + (scale(sqfeet) + beds + baths|state), data = data2)
+summary(housing.lmer4.2) # beds and baths are very correlated (-0.93)
 
 D <- 2*(logLik(housing.lmer4.1)-logLik(housing.lmer4.2))
 N <- 500
@@ -228,19 +227,40 @@ for (i in 1:N) {
 }
 hist(Dsim)
 abline(v = D)
-mean(Dsim >= D) # p-value is 1
+mean(Dsim >= D) # p-value is 1, just need random slopes
 ```
 
 ```{r Fixed Effects}
-housing.lmer.fix1 <- lmer(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack + (1|state), data = housing_subset2)
+housing.lmer.fix1 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack + (1|state), data = data2)
 summary(housing.lmer.fix1)
 
-# throw out wheelchair acess and death penalty
-housing.lmer.fix2 <- lmer(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed +  comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + PctWhite + PctBlack + (1|state), data = housing_subset2)
+# throw out wheelchair_acess, DeathPenalty, and comes_furnished
+housing.lmer.fix2 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + PopDensity + TaxRate + PctWhite + PctBlack + (1|state), data = data2)
 summary(housing.lmer.fix2)
 
 # alt - null
 D <- 2*(logLik(housing.lmer.fix1)-logLik(housing.lmer.fix2))
 1-pchisq(D, 2) # prefer smaller model
+
+# removing Pctlack, pctWhite, TaxRate
+housing.lmer.fix3 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + PopDensity + (1|state), data = data2)
+summary(housing.lmer.fix3)
+
+# alt - null
+D <- 2*(logLik(housing.lmer.fix2)-logLik(housing.lmer.fix3))
+1-pchisq(D, 3) # prefer smaller model
+
+# removing PopDensity
+housing.lmer.fix4 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + (1|state), data = data2)
+summary(housing.lmer.fix4)
+
+# alt - null
+D <- 2*(logLik(housing.lmer.fix3)-logLik(housing.lmer.fix4))
+1-pchisq(D, 1) # prefer smaller model
 ```
+
+```{r Final Model Maybe}
+housing.lmer.fix4 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + (1|state), data = data2)
+```
+
 
