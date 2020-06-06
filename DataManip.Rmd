@@ -14,205 +14,193 @@ library(wesanderson)
 library(gridExtra)
 ```
 
-# Data Manipulation and EDA
+# Data Manipulation 
 
-```{r}
+```{r Data Cleanup}
+# original dataset
 housing <- read_csv("housingAll.csv")
 
+# filter to just have apartments, prices less than 5000 (reducing skew and variabiltiy)
+# removing region (not very useful variable) and electric_vehicle_charge (too few observations)
 housing2 <- housing %>%
   filter(type == "apartment", price <= 5000) %>%
   select(-c(region, electric_vehicle_charge))
 
 n <- nrow(housing2)
 
+# choosing random sample of 2000 observations from original dataset to be our new dataset
 set.seed(790)
 index <- sample(n, 2000, replace = FALSE)
 housing_subset <- housing2[index,]
 
+# making new csv
 write.csv(housing_subset, "housingSubset.csv")
-```
 
-```{r}
- table(housing_subset$type)
- ggplot(housing_subset) + geom_histogram(aes(x = price))
- housing_subset <- housing_subset %>% filter(price < 5000)
-
- table(housing_subset$cats_allowed)
- table(housing_subset$dogs_allowed)
- table(housing_subset$smoking_allowed)
- table(housing_subset$wheelchair_access)
- table(housing_subset$comes_furnished)
-```
-
-## EDA Jaylin
-```{r}
+# dataframe
 data <- read_csv("housingSubset.csv")
-ggplot(data) + geom_boxplot(aes(y = price, x = cats_allowed, group = cats_allowed))
-ggplot(data) + geom_boxplot(aes(y = price, x = dogs_allowed, group = dogs_allowed))
-ggplot(data) + geom_boxplot(aes(y = price, x = smoking_allowed, group = smoking_allowed))
-ggplot(data) + geom_boxplot(aes(y = price, x = wheelchair_access, group = wheelchair_access))
-ggplot(data) + geom_boxplot(aes(y = price, x = comes_furnished, group = comes_furnished))
-#none of these seem that important 
-
-ggplot(data, aes(x = beds, y = price)) + geom_point() + geom_jitter()
 ```
-Should we take out all of the 0s? 
 
-```{r}
+# EDA
+
+```{r Tables}
+# checking that all apartments
+table(data$type) 
+
+# tables of counts of level one variables
+table(data$cats_allowed)
+table(data$dogs_allowed)
+table(data$smoking_allowed)
+table(data$wheelchair_access)
+table(data$comes_furnished)
+```
+
+```{r Distribution of Price}
+# idistribution of price is skewed right
 ggplot(data) + geom_histogram(aes(x = price), color = "white", bins = 25)
 
+# price distribution is more symmetric when removed prices of 0 and 1
+# and log-transformed price
 data %>%
   filter(price > 5) %>%
   ggplot() + geom_histogram(aes(x = log(price)), color = "white", bins = 25)
 ```
 
-```{r}
-ggplot(data) + geom_point(aes(x = PopDensity, y = price))
-largePop <- data[which(data$PopDensity > 7500),]
+```{r Boxplots of Price by Level One Dummy Variables}
+#scale_fill_manual(values = wes_palette("Moonrise2", n = 2)) 
 
-data[which(data$PopDensity > 7500),c(15, 18:20)] #population density in DC is ridiculous 
+# as number of bedrooms increases, price tends to increase
+ggplot(data, aes(x = beds, y = price)) + geom_point() + geom_jitter()
 
-data %>%
-  filter(state != "dc") %>%
-  ggplot(aes(x = PopDensity, y = price)) + geom_point() + geom_jitter() #slight positive correlation 
+# making level one dummy variables factor variables for plotting
+data$cats_allowed2 <- factor(data$cats_allowed, levels = c(0,1))
+data$dogs_allowed2 <- factor(data$dogs_allowed, levels = c(0,1))
+data$smoking_allowed2 <- factor(data$smoking_allowed, levels = c(0,1))
+data$wheelchair_access2 <- factor(data$wheelchair_access, levels = c(0,1))
+data$comes_furnished2 <- factor(data$comes_furnished, levels = c(0,1))
+
+# grid of boxplots of price by respective level one dummy variable
+p1 <- ggplot(data) + 
+  geom_boxplot(mapping = aes(y = price, x = cats_allowed2)) + 
+  labs(x = "Cats Allowed") 
+  
+p2 <- ggplot(data) + 
+  geom_boxplot(mapping = aes(y = price, x = dogs_allowed2)) + 
+  labs(x = "Dogs Allowed") 
+
+p3 <- ggplot(data) + 
+  geom_boxplot(mapping = aes(y = price, x = smoking_allowed2)) + 
+  labs(x = "Smoking Allowed") 
+
+p4 <- ggplot(data) + 
+  geom_boxplot(mapping = aes(y = price, x = wheelchair_access2)) + 
+  labs(x = "Wheelchair Access") 
+
+p5 <- ggplot(data) + 
+  geom_boxplot(mapping = aes(y = price, x = comes_furnished2)) + 
+  labs(x = "Comes Furnished")  
+
+grid.arrange(p1, p2, p3, p4, p5, ncol = 2)
+
+# wheelchair_access, comes_furnished, and smoking_allowed have slightly different
+# distibutions depending on dummy variable value—we should look out for those
 ```
 
-```{r}
+```{r Boxplots of Price by Level Two Dummy Variables}
+#scale_fill_manual(values = wes_palette("Moonrise2", n = 2)) 
+
+data.new <- na.omit(data) # DC has no governor
+# making DeathPenalty a factor dummy variable
+data.new$DeathPenalty2 <- factor(data.new$DeathPenalty, levels = c(0,1)) 
+
+p1.2 <- ggplot(data.new) + 
+  geom_boxplot(mapping = aes(y = price, x = Governor)) + 
+  labs(x = "Governor Political Party") 
+
+p2.2 <- ggplot(data.new) + 
+  geom_boxplot(mapping = aes(y = price, x = DeathPenalty2)) + 
+  labs(x = "Death Penalty in State") 
+
+grid.arrange(p1.2, p2.2, ncol = 1) 
+
+# looks like states without the death penalty and democratic governors
+# tend to have higher priced rent
+```
+
+```{r Rent Prices by State}
+# median price
 data %>%
   group_by(`State Name`) %>%
   summarize(MedianPrice = median(price)) %>%
   ggplot() + geom_bar(aes(x = reorder(`State Name`, MedianPrice), y = MedianPrice), stat = "identity") + coord_flip()
 
+# mean price
 data %>%
   group_by(`State Name`) %>%
   summarize(MeanPrice = mean(price)) %>%
   ggplot() + geom_bar(aes(x = reorder(`State Name`, MeanPrice), y = MeanPrice), stat = "identity") + coord_flip()
 ``` 
+
 Top 5 states: DC, Hawaii, New Jersey, New Hampshire, California
 Bottom 5 states: Kansas, Missouri, Oklahoma, West Virginia, Mississippi 
 
-## EDA Jenna
-
-```{r Boxplots of Price by Level One Vars}
+```{r Level One and Two Variables}
 #scale_fill_manual(values = wes_palette("Moonrise2", n = 2)) 
 
-housing_subset$cats_allowed2 <- factor(housing_subset$cats_allowed, levels = c(0,1))
-housing_subset$dogs_allowed2 <- factor(housing_subset$dogs_allowed, levels = c(0,1))
-housing_subset$smoking_allowed2 <- factor(housing_subset$smoking_allowed, levels = c(0,1))
-housing_subset$wheelchair_access2 <- factor(housing_subset$wheelchair_access, levels = c(0,1))
-housing_subset$comes_furnished2 <- factor(housing_subset$comes_furnished, levels = c(0,1))
-
-p1 <- ggplot(housing_subset) + 
-  geom_boxplot(mapping = aes(y = price, x = cats_allowed2)) + 
-  labs(x = "Cats Allowed") 
-  
-
-p2 <- ggplot(housing_subset) + 
-  geom_boxplot(mapping = aes(y = price, x = dogs_allowed2)) + 
-  labs(x = "Dogs Allowed") 
-
-p3 <- ggplot(housing_subset) + 
-  geom_boxplot(mapping = aes(y = price, x = smoking_allowed2)) + 
-  labs(x = "Smoking Allowed") 
-
-p4 <- ggplot(housing_subset) + 
-  geom_boxplot(mapping = aes(y = price, x = wheelchair_access2)) + 
-  labs(x = "Wheelchair Access") 
-
-p5 <- ggplot(housing_subset) + 
-  geom_boxplot(mapping = aes(y = price, x = comes_furnished2)) + 
-  labs(x = "Comes Furnished")  
-
-grid.arrange(p1, p2, p3, p4, p5, ncol = 2)
-```
-
-```{r Boxplots of Price by Level Two Vars}
-#scale_fill_manual(values = wes_palette("Moonrise2", n = 2)) 
-
-housing_subset2.1 <- na.omit(housing_subset) # DC has no governor
-housing_subset$DeathPenalty2 <- factor(housing_subset$DeathPenalty, levels = c(0,1))
-
-p1.2 <- ggplot(housing_subset2.1) + 
-  geom_boxplot(mapping = aes(y = price, x = Governor)) + 
-  labs(x = "Governor Political Party") 
-
-p2.2 <- ggplot(housing_subset) + 
-  geom_boxplot(mapping = aes(y = price, x = DeathPenalty2)) + 
-  labs(x = "Death Penalty in State") 
-
-grid.arrange(p1.2, p2.2, ncol = 1)
-```
-
-```{r Levels One and Two}
-#scale_fill_manual(values = wes_palette("Moonrise2", n = 2)) 
-
-housing_subset3 <- subset(housing_subset, subset = sqfeet < 3500)
+data.new2 <- subset(data, subset = sqfeet < 3500)
 
 # linetype isn't an ideal aesthetic here but it helps a little
-
-ggplot(housing_subset3, mapping = aes(y = price, x = sqfeet, group = as.factor(beds))) + 
+# as sqfeet increases, price increases
+ggplot(data.new2, mapping = aes(y = price, x = sqfeet, group = as.factor(beds))) + 
   geom_point(aes(color = as.factor(beds))) +
   geom_smooth(aes(linetype = as.factor(beds)), method = "lm", se = FALSE, color = "black")
   labs(title = "Scatterplot of Sqft by Price") 
   
-# not very important it seems  
-ggplot(housing_subset, mapping = aes(y = price, x = PctBlack)) +
+# no strong relationship between PctBlack and price it seems
+ggplot(data, mapping = aes(y = price, x = PctBlack)) +
   geom_point()
  
+data[which(data$PopDensity > 7500),c(15, 18:20)] # population density in DC is ridiculous 
+
 # DC has incredibly high popdensity, might lead to some outliers, let's try subsetting it out
-ggplot(housing_subset, mapping = aes(y = price, x = PopDensity)) +
+ggplot(data, mapping = aes(y = price, x = PopDensity)) +
   geom_point()
 
 # as popdensity increases, price increases, likely because those are cities
-housing_subset4 <- subset(housing_subset, subset = state != "dc") %>%
+data.new3 <- subset(data, subset = state != "dc") %>%
   group_by(state)
-ggplot(housing_subset4, mapping = aes(y = price, x = PopDensity)) +
+
+# as PopDensity increases, price tends to increase too, likely because cities have
+# higher PopDensity and therefore also higher prices
+ggplot(data.new3, mapping = aes(y = price, x = PopDensity)) +
   geom_point() + 
   geom_smooth(se = FALSE, method = "lm")
 
-# I have no idea what's happening here
+# TaxRate doesn't seem to be very indicative of price
 ggplot(housing_subset, mapping = aes(y = price, x = TaxRate)) +
   geom_point() + 
   geom_smooth(se = FALSE, method = "lm")
 ```
 
-```{r Hist of Price}
-# skewed right still, might need to log tranform anyway
-ggplot(housing_subset, mapping = aes(x = log(price))) +
-  geom_histogram()
-```
+# Modeling
 
-## Preliminary Modeling
-
-```{r}
+```{r Subsetted Final Data Based on EDA}
+# getting rid of prices of 0 and 1, DC, and collapsing cats_allowed and dogs_allowed into one variable
 data2 <- data %>%
   filter(price > 5) %>%
   filter(state != "dc") %>%
   mutate(pets_allowed = ifelse(cats_allowed == 1 & dogs_allowed == 1, 1, 0))
-
-
-housing.lm <- lm(log(price) ~ sqfeet + beds + baths + cats_allowed + dogs_allowed + smoking_allowed + wheelchair_access + comes_furnished + MedianIncome + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack, data = housing_subset2)
-summary(housing.lm)
-cor(housing_subset2$cats_allowed, housing_subset2$dogs_allowed) #0.906
-cor(housing_subset2$beds, housing_subset2$sqfeet) #0.708
-cor(housing_subset2$beds, housing_subset2$baths) #0.64
-
-housing.lm2 <- lm(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + MedianIncome + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack, data = housing_subset2)
-summary(housing.lm2)
 ```
 
-```{r Random Effets}
-housing.lmer <- lmer(log(price) ~ 1 + (1|state), data = housing_subset2)
-summary(housing.lmer)
+## Random Effects
 
-housing.lmer2 <- lmer(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack + (1|state), data = housing_subset2)
+```{r Random Effects}
+# after Laura's suggestions
 
-housing.lmer3 <- lmer(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack + (sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished|state), data = housing_subset2)
-
-# after laura's suggestions
+# just random intercept
 housing.lmer4.1 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + (1|state), data = data2)
 summary(housing.lmer4.1)
 
+# random slope
 housing.lmer4.2 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + (scale(sqfeet) + beds + baths|state), data = data2)
 summary(housing.lmer4.2) # beds and baths are very correlated (-0.93)
 
@@ -230,11 +218,13 @@ abline(v = D)
 mean(Dsim >= D) # p-value is 1, just need random slopes
 ```
 
+## Fixed Effects
+
 ```{r Fixed Effects}
 housing.lmer.fix1 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack + (1|state), data = data2, REML = FALSE)
 summary(housing.lmer.fix1)
 
-# throw out wheelchair_acess, DeathPenalty, and comes_furnished
+# remove wheelchair_acess, DeathPenalty, and comes_furnished
 housing.lmer.fix2 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + PopDensity + TaxRate + PctWhite + PctBlack + (1|state), data = data2, REML = FALSE)
 summary(housing.lmer.fix2)
 
@@ -242,7 +232,7 @@ summary(housing.lmer.fix2)
 D <- 2*(logLik(housing.lmer.fix1)-logLik(housing.lmer.fix2))
 1-pchisq(D, 3) # p-val is 0.9324294, prefer smaller model, housing.lmer.fix2
 
-# removing Pctlack, pctWhite, TaxRate
+# removing Pctlack, pctWhite, TaxRate from housing.lmer.fix2
 housing.lmer.fix3 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + PopDensity + (1|state), data = data2, REML = FALSE)
 summary(housing.lmer.fix3)
 
@@ -250,7 +240,7 @@ summary(housing.lmer.fix3)
 D <- 2*(logLik(housing.lmer.fix2)-logLik(housing.lmer.fix3))
 1-pchisq(D, 3) # p-val is 0.02657733, prefer larger model, housing.lmer.fix2
 
-# removing just Pctlack, pctWhite
+# removing just Pctlack, pctWhite from housing.lmer.fix2
 housing.lmer.fix4 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + PopDensity + TaxRate + (1|state), data = data2, REML = FALSE)
 summary(housing.lmer.fix4)
 
@@ -258,8 +248,10 @@ summary(housing.lmer.fix4)
 D <- 2*(logLik(housing.lmer.fix2)-logLik(housing.lmer.fix4))
 1-pchisq(D, 2) # p-val is 0.086, prefer smaller model, housing.lmer.fix4
 
-#no other low t-values
+# no other low t-values, done checking fixed effects
 ```
+
+## Interactions
 
 ```{r Interaction Terms}
 # working model is housing.lmer.fix4
@@ -270,10 +262,12 @@ summary(housing.lmer.int1)
 
 # alt - null
 D <- 2*(logLik(housing.lmer.int1)-logLik(housing.lmer.fix4))
-1-pchisq(D, 1) # p-val is 0, prefer housing.lmer.fix4
+1-pchisq(D, 1) # p-val is 0, prefer housing.lmer.fix4, no interactions
 ```
 
-```{r Final Model Maybe}
+# Final Model
+
+```{r Final Model}
 housing.lmer.fix4 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + PopDensity + TaxRate + (1|state), data = data2, REML = FALSE)
 summary(housing.lmer.fix4)
 ```
