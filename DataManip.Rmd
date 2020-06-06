@@ -91,47 +91,6 @@ data %>%
 Top 5 states: DC, Hawaii, New Jersey, New Hampshire, California
 Bottom 5 states: Kansas, Missouri, Oklahoma, West Virginia, Mississippi 
 
-```{r}
-housing_subset2 <- data %>%
-  filter(price > 5, state != "dc")
-
-
-housing.lm <- lm(log(price) ~ sqfeet + beds + baths + cats_allowed + dogs_allowed + smoking_allowed + wheelchair_access + comes_furnished + MedianIncome + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack, data = housing_subset2)
-summary(housing.lm)
-cor(housing_subset2$cats_allowed, housing_subset2$dogs_allowed) #0.906
-cor(housing_subset2$beds, housing_subset2$sqfeet) #0.708
-cor(housing_subset2$beds, housing_subset2$baths) #0.64
-
-
-housing_subset2 <- housing_subset2 %>%
-  mutate(pets_allowed = ifelse(cats_allowed == 1 & dogs_allowed == 1, 1, 0))
-
-housing.lm2 <- lm(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + MedianIncome + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack, data = housing_subset2)
-summary(housing.lm2)
-```
-
-```{r}
-housing.glmer <- lmer(log(price) ~ 1 + (1|state), data = housing_subset2)
-summary(housing.glmer)
-
-housing.lmer2 <- lmer(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack + (1|state), data = housing_subset2)
-
-housing.lmer3 <- lmer(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack + (sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished|state), data = housing_subset2)
-
-D <- 2*(logLik(housing.lmer2)-logLik(housing.lmer3))
-N <- 500
-Dsim <- numeric(N)
-nullY <- simulate(housing.lmer2, nsim = N)
-for (i in 1:N) {
-  null.lmer <- refit(housing.lmer2, nullY[,i])
-  alt.lmer <- refit(housing.lmer3, nullY[,i])
-  Dsim[i] <- 2*(logLik(alt.lmer) - logLik(null.lmer))
-}
-hist(Dsim)
-abline(v = D)
-mean(Dsim >= D)
-```
-
 
 ## EDA Jenna
 
@@ -224,4 +183,51 @@ ggplot(housing_subset, mapping = aes(x = log(price))) +
   geom_histogram()
 ```
 
+## Preliminary Modeling
 
+```{r}
+housing_subset2 <- housing_subset %>%
+  filter(price > 5)
+
+
+housing.lm <- lm(log(price) ~ sqfeet + beds + baths + cats_allowed + dogs_allowed + smoking_allowed + wheelchair_access + comes_furnished + MedianIncome + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack, data = housing_subset2)
+summary(housing.lm)
+cor(housing_subset2$cats_allowed, housing_subset2$dogs_allowed) #0.906
+cor(housing_subset2$beds, housing_subset2$sqfeet) #0.708
+cor(housing_subset2$beds, housing_subset2$baths) #0.64
+
+
+housing_subset2 <- housing_subset2 %>%
+  mutate(pets_allowed = ifelse(cats_allowed == 1 & dogs_allowed == 1, 1, 0))
+
+housing.lm2 <- lm(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + MedianIncome + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack, data = housing_subset2)
+summary(housing.lm2)
+```
+
+```{r}
+housing.lmer <- lmer(log(price) ~ 1 + (1|state), data = housing_subset2)
+summary(housing.lmer)
+
+housing.lmer2 <- lmer(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack + (1|state), data = housing_subset2)
+
+housing.lmer3 <- lmer(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack + (sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished|state), data = housing_subset2)
+
+# after laura's suggestions
+housing.lmer4.1 <- lmer(log(price) ~ 1 + (1|state), data = housing_subset2)
+summary(housing.lmer)
+
+housing.lmer4.2 <- lmer(log(price) ~ (1|state) + (sqfeet + beds + baths|state), data = housing_subset2)
+
+D <- 2*(logLik(housing.lmer4.1)-logLik(housing.lmer4.2))
+N <- 500
+Dsim <- numeric(N)
+nullY <- simulate(housing.lmer4.1, nsim = N)
+for (i in 1:N) {
+  null.lmer <- refit(housing.lmer4.1, nullY[,i])
+  alt.lmer <- refit(housing.lmer4.2, nullY[,i])
+  Dsim[i] <- 2*(logLik(alt.lmer) - logLik(null.lmer))
+}
+hist(Dsim)
+abline(v = D)
+mean(Dsim >= D) # p-value is 1
+```
