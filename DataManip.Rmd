@@ -92,8 +92,8 @@ Top 5 states: DC, Hawaii, New Jersey, New Hampshire, California
 Bottom 5 states: Kansas, Missouri, Oklahoma, West Virginia, Mississippi 
 
 ```{r}
-housing_subset2 <- housing_subset %>%
-  filter(price > 5)
+housing_subset2 <- data %>%
+  filter(price > 5, state != "dc")
 
 
 housing.lm <- lm(log(price) ~ sqfeet + beds + baths + cats_allowed + dogs_allowed + smoking_allowed + wheelchair_access + comes_furnished + MedianIncome + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack, data = housing_subset2)
@@ -114,14 +114,14 @@ summary(housing.lm2)
 housing.glmer <- lmer(log(price) ~ 1 + (1|state), data = housing_subset2)
 summary(housing.glmer)
 
-housing.glmer2 <- lmer(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack + (1|state), data = housing_subset2)
+housing.lmer2 <- lmer(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack + (1|state), data = housing_subset2)
 
-housing.glmer3 <- lmer(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack + (sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished|state), data = housing_subset2)
+housing.lmer3 <- lmer(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack + (sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished|state), data = housing_subset2)
 
 D <- 2*(logLik(housing.lmer2)-logLik(housing.lmer3))
 N <- 500
 Dsim <- numeric(N)
-nullY <- simulate(housing.lmer3, nsim = N)
+nullY <- simulate(housing.lmer2, nsim = N)
 for (i in 1:N) {
   null.lmer <- refit(housing.lmer2, nullY[,i])
   alt.lmer <- refit(housing.lmer3, nullY[,i])
