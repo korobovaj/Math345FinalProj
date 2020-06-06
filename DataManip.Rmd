@@ -62,7 +62,7 @@ Should we take out all of the 0s?
 ggplot(data) + geom_histogram(aes(x = price), color = "white", bins = 25)
 
 data %>%
-  filter(price != 0) %>%
+  filter(price > 5) %>%
   ggplot() + geom_histogram(aes(x = log(price)), color = "white", bins = 25)
 ```
 
@@ -74,7 +74,7 @@ data[which(data$PopDensity > 7500),c(15, 18:20)] #population density in DC is ri
 
 data %>%
   filter(state != "dc") %>%
-  ggplot() + geom_point(aes(x = PopDensity, y = price)) #slight positive correlation 
+  ggplot(aes(x = PopDensity, y = price)) + geom_point() + geom_jitter() #slight positive correlation 
 ```
 
 ```{r}
@@ -82,9 +82,56 @@ data %>%
   group_by(`State Name`) %>%
   summarize(MedianPrice = median(price)) %>%
   ggplot() + geom_bar(aes(x = reorder(`State Name`, MedianPrice), y = MedianPrice), stat = "identity") + coord_flip()
+
+data %>%
+  group_by(`State Name`) %>%
+  summarize(MeanPrice = mean(price)) %>%
+  ggplot() + geom_bar(aes(x = reorder(`State Name`, MeanPrice), y = MeanPrice), stat = "identity") + coord_flip()
 ``` 
 Top 5 states: DC, Hawaii, New Jersey, New Hampshire, California
 Bottom 5 states: Kansas, Missouri, Oklahoma, West Virginia, Mississippi 
+
+```{r}
+housing_subset2 <- housing_subset %>%
+  filter(price > 5)
+
+
+housing.lm <- lm(log(price) ~ sqfeet + beds + baths + cats_allowed + dogs_allowed + smoking_allowed + wheelchair_access + comes_furnished + MedianIncome + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack, data = housing_subset2)
+summary(housing.lm)
+cor(housing_subset2$cats_allowed, housing_subset2$dogs_allowed) #0.906
+cor(housing_subset2$beds, housing_subset2$sqfeet) #0.708
+cor(housing_subset2$beds, housing_subset2$baths) #0.64
+
+
+housing_subset2 <- housing_subset2 %>%
+  mutate(pets_allowed = ifelse(cats_allowed == 1 & dogs_allowed == 1, 1, 0))
+
+housing.lm2 <- lm(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + MedianIncome + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack, data = housing_subset2)
+summary(housing.lm2)
+```
+
+```{r}
+housing.glmer <- lmer(log(price) ~ 1 + (1|state), data = housing_subset2)
+summary(housing.glmer)
+
+housing.glmer2 <- lmer(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack + (1|state), data = housing_subset2)
+
+housing.glmer3 <- lmer(log(price) ~ sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack + (sqfeet + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished|state), data = housing_subset2)
+
+D <- 2*(logLik(housing.lmer2)-logLik(housing.lmer3))
+N <- 500
+Dsim <- numeric(N)
+nullY <- simulate(housing.lmer3, nsim = N)
+for (i in 1:N) {
+  null.lmer <- refit(housing.lmer2, nullY[,i])
+  alt.lmer <- refit(housing.lmer3, nullY[,i])
+  Dsim[i] <- 2*(logLik(alt.lmer) - logLik(null.lmer))
+}
+hist(Dsim)
+abline(v = D)
+mean(Dsim >= D)
+```
+
 
 ## EDA Jenna
 
