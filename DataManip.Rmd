@@ -231,36 +231,49 @@ mean(Dsim >= D) # p-value is 1, just need random slopes
 ```
 
 ```{r Fixed Effects}
-housing.lmer.fix1 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack + (1|state), data = data2)
+housing.lmer.fix1 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack + (1|state), data = data2, REML = FALSE)
 summary(housing.lmer.fix1)
 
 # throw out wheelchair_acess, DeathPenalty, and comes_furnished
-housing.lmer.fix2 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + PopDensity + TaxRate + PctWhite + PctBlack + (1|state), data = data2)
+housing.lmer.fix2 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + PopDensity + TaxRate + PctWhite + PctBlack + (1|state), data = data2, REML = FALSE)
 summary(housing.lmer.fix2)
 
 # alt - null
 D <- 2*(logLik(housing.lmer.fix1)-logLik(housing.lmer.fix2))
-1-pchisq(D, 2) # prefer smaller model
+1-pchisq(D, 3) # p-val is 0.9324294, prefer smaller model, housing.lmer.fix2
 
 # removing Pctlack, pctWhite, TaxRate
-housing.lmer.fix3 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + PopDensity + (1|state), data = data2)
+housing.lmer.fix3 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + PopDensity + (1|state), data = data2, REML = FALSE)
 summary(housing.lmer.fix3)
 
 # alt - null
 D <- 2*(logLik(housing.lmer.fix2)-logLik(housing.lmer.fix3))
-1-pchisq(D, 3) # prefer smaller model
+1-pchisq(D, 3) # p-val is 0.02657733, prefer larger model, housing.lmer.fix2
 
-# removing PopDensity
-housing.lmer.fix4 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + (1|state), data = data2)
-summary(housing.lmer.fix4)
+#no other low t-values
+```
+
+```{r Interaction Terms}
+# working model is housing.lmer.fix2
+
+# maybe PctWhite and PctBlack interact?
+housing.lmer.int1 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + PopDensity + TaxRate + PctWhite*PctBlack + (1|state), data = data2, REML = FALSE)
+summary(housing.lmer.int1)
 
 # alt - null
-D <- 2*(logLik(housing.lmer.fix3)-logLik(housing.lmer.fix4))
-1-pchisq(D, 1) # prefer smaller model
+D <- 2*(logLik(housing.lmer.fix2)-logLik(housing.lmer.int1))
+1-pchisq(D, 1) # p-val is 1, prefer housing.lmer.int1
+
+# maybe beds and baths interact?
+housing.lmer.int2 <- lmer(log(price) ~ scale(sqfeet) + beds*baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + PopDensity + TaxRate + PctWhite*PctBlack + (1|state), data = data2, REML = FALSE)
+summary(housing.lmer.int2)
+
+# alt - null
+D <- 2*(logLik(housing.lmer.int1)-logLik(housing.lmer.int2))
+1-pchisq(D, 1) # p-val is 1, prefer housing.lmer.int2
 ```
 
 ```{r Final Model Maybe}
-housing.lmer.fix4 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + (1|state), data = data2)
+housing.lmer.int2 <- lmer(log(price) ~ scale(sqfeet) + beds*baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + PopDensity + TaxRate + PctWhite*PctBlack + (1|state), data = data2, REML = FALSE)
+summary(housing.lmer.int2)
 ```
-
-
