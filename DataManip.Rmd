@@ -228,5 +228,5 @@ for (i in 1:N) {
 }
 hist(Dsim)
 abline(v = D)
-mean(Dsim >= D)
+mean(Dsim >= D) # p-value is 1
 ```
