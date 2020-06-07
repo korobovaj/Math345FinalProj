@@ -204,7 +204,8 @@ summary(housing.lmer4.1)
 housing.lmer4.2 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + (scale(sqfeet) + beds + baths|state), data = data2)
 summary(housing.lmer4.2) # beds and baths are very correlated (-0.93)
 
-D <- 2*(logLik(housing.lmer4.1)-logLik(housing.lmer4.2))
+# alt - null
+D <- 2*(logLik(housing.lmer4.2)-logLik(housing.lmer4.1))
 N <- 500
 Dsim <- numeric(N)
 nullY <- simulate(housing.lmer4.1, nsim = N)
@@ -221,10 +222,11 @@ mean(Dsim >= D) # p-value is 1, just need random slopes
 ## Fixed Effects
 
 ```{r Fixed Effects}
+# all fixed effects and random slope
 housing.lmer.fix1 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + wheelchair_access + comes_furnished + scale(MedianIncome) + Governor + PopDensity + TaxRate + DeathPenalty + PctWhite + PctBlack + (1|state), data = data2, REML = FALSE)
 summary(housing.lmer.fix1)
 
-# remove wheelchair_acess, DeathPenalty, and comes_furnished
+# remove wheelchair_acess, DeathPenalty, and comes_furnished from housing.lmer.fix1
 housing.lmer.fix2 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + PopDensity + TaxRate + PctWhite + PctBlack + (1|state), data = data2, REML = FALSE)
 summary(housing.lmer.fix2)
 
