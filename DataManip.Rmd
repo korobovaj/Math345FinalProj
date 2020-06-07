@@ -113,8 +113,6 @@ sd(data2$sqfeet)
 ```
 
 ```{r Boxplots of Price by Level One Dummy Variables}
-#scale_fill_manual(values = wes_palette("Moonrise2", n = 2)) 
-
 # as number of bedrooms increases, price tends to increase
 ggplot(data, aes(x = beds, y = price)) + geom_point() + geom_jitter()
 
