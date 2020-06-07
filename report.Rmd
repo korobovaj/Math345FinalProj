@@ -20,13 +20,11 @@ library(HLMdiag)
 
 ## Introduction
 
-Since its establishment in 1995, Craigslist has been a widely used online resource for individuals to post advertisements in a variety of categories, such as jobs, household articles, services, pets, and housing. In particular, it has become increasingly common for homeowners and landlords to advertise homes and apartments for rent through Craigslist. Moreover, individuals seeking roommates often post advertisements for their rentable spare rooms. We are interested in investigating what characterizes a listing having a higher rent, whether the most influential effects are at the listing or state level, and what interactions exist between the variables. 
+Since its establishment in 1995, Craigslist has been a widely used online resource for individuals to post advertisements in a variety of categories, such as jobs, household articles, services, pets, and housing. In particular, it has become increasingly common for homeowners and landlords to advertise homes and apartments for rent through Craigslist. Moreover, individuals seeking roommates often post advertisements for their rentable spare rooms. We are interested in investigating what characterizes a listing having a higher rent, whether the most influential effects are at the listing or state level, and what interactions exist between the variables. A similar study was conducted in 2016 by Geoff Boeing and Paul Waddell, which was published in the Journal of Planning Education and Research. The study analyzed trends in the market for rental housing throughout the United States using data scraped off of Craigslist's website. More information about this study may be found in Appendix C.
 
 ## Methods
 
 Our analysis is based on a dataset obtained from Kaggle. The original dataset consisted of 384,977 observations, where each observation was a privately sold housing option displayed on Craigslist in January of 2020. It contains information about each housing option, including the state, city/region, price, type of building, square footage, number of bedrooms, number of bathrooms, whether cats or dogs were allowed, whether smoking was allowed, if there was wheelchair access, if there was a charging station for electrical vehicles, and if furniture was included. However, we also obtained state level data and added that information to the dataset. Median income, population, and land area were all obtained from the Census Bureau. We also included whether a state had the death penalty or not, the median tax property rate, the political party of the current governor, and the percentage of white and black people in each state. This information was obtained from deathpenalty.org, mortagecalculator.org, ballotpedia.org, and governing.com, respectively. Full citations can be found in Appendix C. 
-
-\newpage
 
 Since the original dataset included apartments, houses, flats, condominiums, and a variety of other housing options, we decided to restrict our analysis to apartments only. Almost all of the original observations (318,032) were apartments, so we chose to focus on those. We also removed all observations with a price higher than 5,000 dollars. There were only a small number of observations that large, and we wanted to focus on the prices of apartments we considered more reasonable. After excluding these observations, we drew a random sample of size 2,000 from our dataset. Since the original dataset was so large, it would have been impractical to create a model from the entire dataset. However, we also later realized that there were unusually small prices in our dataset, ranging from 0 to 5 dollars. We considered these to be unreasonably small prices, likely inaccurate, and subsequently removed them from the dataset. Our dataset also originally included the Washington DC area, but after realizing that the population density for DC was near 10,000 people per square mile while the next highest state was near 1,000 people per square mile, we decided to exclude observations from DC entirely. After making these final changes, our final dataset consisted of 1,976 observations. 
 
@@ -199,6 +197,8 @@ data %>%
 ## Appendix C: Resources
 
 Ballotpedia. (2020). Partisan Composition of Governors. Retrieved from: https://ballotpedia.org/Partisan_composition_of_governors
+
+Boeing, G., & Waddell, P. (2017). New Insights into Rental Housing Markets across the United States: Web Scraping and Analyzing Craigslist Rental Listings. Journal of Planning Education and Research, 37(4), 457–476. https://doi.org/10.1177/0739456X16664789
 
 Death Penalty Information Center. (2020). States with and without the Death Penalty. Retrieved from: https://deathpenaltyinfo.org/state-and-federal-info/state-by-state
 
