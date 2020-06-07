@@ -343,16 +343,16 @@ which(x < -6) # observations 79, 1579, and 1770 need to be removed
 ```
 
 ```{r Refit}
+# removing the three points from the dataset
+data3 <- data2[-c(79, 1579, 1770), ]
+
 # refitting housing.lmer.fix4 without those three observations
-housing.lmer.fix4.2 <- update(housing.lmer.fix4, subset = -c(79, 1579, 1770))
+housing.lmer.fix4.2 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + PopDensity + TaxRate + (1|state), data = data3, REML = FALSE)
 summary(housing.lmer.fix4.2)
 ```
 
 ```{r Diagnostics Two}
 xNew <- HLMresid(housing.lmer.fix4.2, level = "marginal", standardize = TRUE)
-
-# have to make data the same length
-data3 <- data2[-c(79, 1579, 1770), ]
 
 #standardized marginal: curvature? outliers?
 plot(xNew ~ sqfeet, data = data3)
@@ -374,14 +374,18 @@ which(cd > 0.03) # removing 1229 and 1231 will make the rest of the points okay
 ```
 
 ```{r Refit Two}
-# removing two other observations with high cook's distance values
-housing.lmer.fix4.3 <- update(housing.lmer.fix4, subset = -c(79, 1579, 1770, 1229, 1231))
+
+# removing the three points from the dataset
+data3 <- data3[-c(1229, 1231), ]
+
+# refitting housing.lmer.fix4 without those two observations
+housing.lmer.fix4.3 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + PopDensity + TaxRate + (1|state), data = data3, REML = FALSE)
 summary(housing.lmer.fix4.3)
 ```
 
 ```{r Diagnostics Final}
-cd <- cooks.distance(housing.lmer.fix4.3)
-plot(cd, type = "h") # one super high cook's D, let's remove it
+cd2 <- cooks.distance(housing.lmer.fix4.3)
+plot(cd2, type = "h") 
 
 lev <- leverage(housing.lmer.fix4.3, level = 1)
 head(lev)
@@ -389,4 +393,9 @@ head(lev)
 
 # Final Model
 
-`housing.lmer.fix4.3`
+Refit using new dataset, `data3`, with observations 79, 1229, 1231, 1579, and 1770 removed.
+
+```{r}
+housing.lmer.fix4.3 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + PopDensity + TaxRate + (1|state), data = data3, REML = FALSE)
+summary(housing.lmer.fix4.3)
+```
