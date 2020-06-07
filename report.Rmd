@@ -10,10 +10,11 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(wesanderson)
+library(gridExtra)
 ```
 
-
-```{r, echo = FALSE, fig.align = 'center'}
+```{r, echo = FALSE, fig.align = 'center', fig.cap = "Median Rent Price by State"}
 data <- read_csv("housingSubset.csv")
 data2 <- data %>%
   filter(price > 5) %>%
@@ -23,9 +24,45 @@ data2 <- data %>%
 data2 %>%
   group_by(`State Name`) %>%
   summarize(MedianPrice = median(price)) %>%
-  ggplot() + geom_bar(aes(x = reorder(`State Name`, MedianPrice), y = MedianPrice), stat = "identity") + coord_flip() + labs(y = "Median Price", x = "State", title = "Median Listing Price By State ") + theme(axis.text.y = element_text(size = 7))
+  ggplot() + geom_bar(aes(x = reorder(`State Name`, MedianPrice), y = MedianPrice), stat = "identity", fill = "cadetblue", alpha = 0.8) + 
+  coord_flip() + 
+  scale_y_continuous(breaks = seq(0, 2000, 200)) +
+  labs(y = "Median Price", x = "State", title = "Median Rent Price By State ") + theme(axis.text.y = element_text(size = 7))
 ```
 
+```{r, echo = FALSE, fig.align = 'center', fig.cap = "Boxplots for Level 1 Dummy Variables by Rent Price", fig.height = 4, fig.width = 6}
+data2$pets_allowed2 <- factor(data2$pets_allowed, levels = c(0,1), labels = c("No", "Yes"))
+data2$smoking_allowed2 <- factor(data2$smoking_allowed, levels = c(0,1), labels = c("No", "Yes"))
+data2$wheelchair_access2 <- factor(data2$wheelchair_access, levels = c(0,1), labels = c("No", "Yes"))
+data2$comes_furnished2 <- factor(data2$comes_furnished, levels = c(0,1), labels = c("No", "Yes"))
+
+# grid of boxplots of price by respective level one dummy variable
+p1 <- ggplot(data2) + 
+  geom_boxplot(mapping = aes(y = price, x = pets_allowed2, fill = pets_allowed2)) + 
+  labs(x = "Pets Allowed", fill = "Pets Allowed?") +
+  scale_fill_manual(values = wes_palette("Moonrise1", n = 2)) +
+  scale_y_continuous(breaks = seq(0, 5000, 500))
+
+p2 <- ggplot(data2) + 
+  geom_boxplot(mapping = aes(y = price, x = smoking_allowed2, fill = smoking_allowed2)) + 
+  labs(x = "Smoking Allowed", fill = "Smoking Allowed?") +
+  scale_fill_manual(values = wes_palette("Moonrise1", n = 2)) +
+  scale_y_continuous(breaks = seq(0, 5000, 500))
+
+p3 <- ggplot(data2) + 
+  geom_boxplot(mapping = aes(y = price, x = wheelchair_access2, fill = wheelchair_access2)) + 
+  labs(x = "Wheelchair Access", fill = "Wheelchair Access?") +
+  scale_fill_manual(values = wes_palette("Moonrise1", n = 2)) +
+  scale_y_continuous(breaks = seq(0, 5000, 500))
+
+p4 <- ggplot(data2) + 
+  geom_boxplot(mapping = aes(y = price, x = comes_furnished2, fill = comes_furnished2)) + 
+  labs(x = "Comes Furnished", fill = "Comes Furnished?") +
+  scale_fill_manual(values = wes_palette("Moonrise1", n = 2))  +
+  scale_y_continuous(breaks = seq(0, 5000, 500))
+
+grid.arrange(p1, p2, p3, p4, ncol = 2)
+```
 
 \begin{tabular}{cccccccc}
 \hline
