@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
 
+
 ```{r, echo = FALSE, fig.align = 'center'}
 data <- read_csv("housingSubset.csv")
 data2 <- data %>%
@@ -50,16 +51,16 @@ where $\epsilon \sim N(0, \sigma^2)$ and $u_i \sim N(0, {\sigma_b}^2)$
 \hline
 Parameter & Estimate & Standard Error & T Value \\ 
 \hline
-$\alpha_0$ & 6.961 & 0.0690 & 100.938 \\
-$\alpha_1$ & 0.159 & 0.023 & 6.771 \\
-$\alpha_2$ & -0.108 & 0.044 & -2.451 \\
-$\alpha_3$ & 0.0003 & 0.0001 & 2.425 \\ 
-$\alpha_4$ & -0.101 & 0.047 & -2.150 \\
-$\beta_0$ & 0.132 & 0.011 & 12.490 \\
-$\beta_1$ & -0.064 & 0.014 & -4.472 \\
-$\beta_2$ & 0.114 & 0.018 & 6.39 \\
-$\beta_3$ & 0.093 & 0.016 & 5.813 \\
-$\beta_4$ & -0.041 & 0.017 & -2.392 \\
+$\alpha_0$ & 7.152 & 0.068 & 104.425 \\
+$\alpha_1$ & 0.164 & 0.023 & 7.099 \\
+$\alpha_2$ & -0.113 & 0.044 & -2.571 \\
+$\alpha_3$ & 0.0002 & 0.0001 & 1.882 \\ 
+$\alpha_4$ & -0.098 & 0.046 & -2.113 \\
+$\beta_0$ & 0.202 & 0.012 & 18.703 \\
+$\beta_1$ & -0.126 & 0.016 & -9.246\\
+$\beta_2$ & 0.071 & 0.016 & 4.312 \\
+$\beta_3$ & 0.075 & 0.014 & 5.231 \\
+$\beta_4$ & -0.033 & 0.016 & -2.107 \\
 \hline
 \end{tabular}
 
