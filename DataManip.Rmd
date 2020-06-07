@@ -65,29 +65,20 @@ data %>%
   ggplot() + geom_histogram(aes(x = log(price)), color = "white", bins = 25)
 ```
 
-
-```{r}
-ggplot(data) + geom_point(aes(x = PopDensity, y = price))
-largePop <- data[which(data$PopDensity > 7500),]
-
-data[which(data$PopDensity > 7500),c(15, 18:20)] #population density in DC is ridiculous 
-
-data %>%
-  filter(state != "dc") %>%
-  ggplot(aes(x = PopDensity, y = price)) + geom_point() + geom_jitter() #slight positive correlation 
-```
-
-```{r}
+```{r Price by State}
+# median
 data %>%
   group_by(`State Name`) %>%
   summarize(MedianPrice = median(price)) %>%
   ggplot() + geom_bar(aes(x = reorder(`State Name`, MedianPrice), y = MedianPrice), stat = "identity") + coord_flip()
 
+# mean
 data %>%
   group_by(`State Name`) %>%
   summarize(MeanPrice = mean(price)) %>%
   ggplot() + geom_bar(aes(x = reorder(`State Name`, MeanPrice), y = MeanPrice), stat = "identity") + coord_flip()
 ``` 
+
 Top 5 states: DC, Hawaii, New Jersey, New Hampshire, California
 Bottom 5 states: Kansas, Missouri, Oklahoma, West Virginia, Mississippi 
 
@@ -120,11 +111,6 @@ sd(data2$MedianIncome)
 summary(data2$sqfeet)
 sd(data2$sqfeet)
 ```
-
-
-## EDA Jenna
-
-
 
 ```{r Boxplots of Price by Level One Dummy Variables}
 #scale_fill_manual(values = wes_palette("Moonrise2", n = 2)) 
@@ -254,7 +240,7 @@ data2 <- data %>%
 
 ## Random Effects
 
-```{r Random Effects}
+```{r Random Effects, cache = TRUE}
 # after Laura's suggestions
 
 # just random intercept
@@ -328,9 +314,79 @@ D <- 2*(logLik(housing.lmer.int1)-logLik(housing.lmer.fix4))
 1-pchisq(D, 1) # p-val is 0, prefer housing.lmer.fix4, no interactions
 ```
 
-# Final Model
+## Working Model
 
-```{r Final Model}
+```{r Final Model Maybe}
 housing.lmer.fix4 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + PopDensity + TaxRate + (1|state), data = data2, REML = FALSE)
 summary(housing.lmer.fix4)
 ```
+
+# Diagnostics
+
+```{r Diagnostics One}
+x <- HLMresid(housing.lmer.fix4, level = "marginal", standardize = TRUE)
+
+#standardized marginal: curvature? outliers?
+plot(x ~ sqfeet, data = data2)
+abline(h= 0) # three bad ones
+#residuals in order of observation number
+plot(x)
+abline(h = 0) # three bad ones
+#standardized conditional
+
+x2 <- HLMresid(housing.lmer.fix4 , level = 1, standardize = TRUE)
+#outliers?
+plot(x2) #in order of observation number
+abline(h= 0)
+
+which(x < -6) # observations 79, 1579, and 1770 need to be removed
+```
+
+```{r Refit}
+# refitting housing.lmer.fix4 without those three observations
+housing.lmer.fix4.2 <- update(housing.lmer.fix4, subset = -c(79, 1579, 1770))
+summary(housing.lmer.fix4.2)
+```
+
+```{r Diagnostics Two}
+xNew <- HLMresid(housing.lmer.fix4.2, level = "marginal", standardize = TRUE)
+
+# have to make data the same length
+data3 <- data2[-c(79, 1579, 1770), ]
+
+#standardized marginal: curvature? outliers?
+plot(xNew ~ sqfeet, data = data3)
+abline(h= 0) # huge cluster
+#residuals in order of observation number
+plot(xNew)
+abline(h = 0) # much better
+#standardized conditional
+
+x2New <- HLMresid(housing.lmer.fix4.2, level = 1, standardize = TRUE)
+#outliers?
+plot(x2New) #in order of observation number
+abline(h= 0) # looks okay
+
+cd <- cooks.distance(housing.lmer.fix4.2)
+plot(cd, type = "h") # one super high cook's D, let's remove it
+
+which(cd > 0.03) # removing 1229 and 1231 will make the rest of the points okay
+```
+
+```{r Refit Two}
+# removing two other observations with high cook's distance values
+housing.lmer.fix4.3 <- update(housing.lmer.fix4, subset = -c(79, 1579, 1770, 1229, 1231))
+summary(housing.lmer.fix4.3)
+```
+
+```{r Diagnostics Final}
+cd <- cooks.distance(housing.lmer.fix4.3)
+plot(cd, type = "h") # one super high cook's D, let's remove it
+
+lev <- leverage(housing.lmer.fix4.3, level = 1)
+head(lev)
+```
+
+# Final Model
+
+`housing.lmer.fix4.3`
