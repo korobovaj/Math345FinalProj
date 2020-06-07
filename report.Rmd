@@ -24,7 +24,7 @@ Since its establishment in 1995, Craigslist has been a widely used online resour
 
 ## Methods
 
-Our analysis is based on a dataset obtained from Kaggle. The original dataset consisted of 384,977 observations, where each observation was a privately sold housing option displayed on Craigslist in January of 2020. It contains information about each housing option, including the state, city/region, price, type of building, square footage, number of bedrooms, number of bathrooms, whether cats or dogs were allowed, whether smoking was allowed, if there was wheelchair access, if there was a charging station for electrical vehicles, and if furniture was included. However, we also obtained state level data and added that information to the dataset. Median income, population, and land area were all obtained from the Census Bureau. We also included whether a state had the death penalty or not, the median tax property rate, the political party of the current governor, and the percentage of white and black people in each state. This information was obtained from deathpenalty.org, mortagecalculator.org, ballotpedia.org, and governing.com, respectively. Full citations can be found in Appendix B. 
+Our analysis is based on a dataset obtained from Kaggle. The original dataset consisted of 384,977 observations, where each observation was a privately sold housing option displayed on Craigslist in January of 2020. It contains information about each housing option, including the state, city/region, price, type of building, square footage, number of bedrooms, number of bathrooms, whether cats or dogs were allowed, whether smoking was allowed, if there was wheelchair access, if there was a charging station for electrical vehicles, and if furniture was included. However, we also obtained state level data and added that information to the dataset. Median income, population, and land area were all obtained from the Census Bureau. We also included whether a state had the death penalty or not, the median tax property rate, the political party of the current governor, and the percentage of white and black people in each state. This information was obtained from deathpenalty.org, mortagecalculator.org, ballotpedia.org, and governing.com, respectively. Full citations can be found in Appendix C. 
 
 \newpage
 
@@ -69,7 +69,7 @@ data2$wheelchair_access2 <- factor(data2$wheelchair_access, levels = c(0,1), lab
 data2$comes_furnished2 <- factor(data2$comes_furnished, levels = c(0,1), labels = c("No", "Yes"))
 ```
 
-```{r, echo = FALSE, fig.align = 'center', fig.cap = "Boxplots for Level 1 Dummy Variables by Rent Price", fig.height = 4, fig.width = 6, warning = FALSE, message = FALSE}
+```{r, echo = FALSE, fig.align = 'center', fig.cap = "Boxplots for Level 1 Dummy Variables by Rent Price", fig.height = 5, fig.width = 7, warning = FALSE, message = FALSE}
 # grid of boxplots of price by respective level one dummy variable
 p1 <- ggplot(data2) + 
   geom_boxplot(mapping = aes(y = price, x = pets_allowed2, fill = pets_allowed2)) + 
@@ -98,13 +98,9 @@ p4 <- ggplot(data2) +
 grid.arrange(p1, p2, p3, p4, ncol = 2)
 ```
 
-\newpage
-
 At the state level, we considered the median price of listings in a given state, as shown in **Figure 2**. The 5 states with the highest priced listings were Hawaii, New Jersey, California, New Hampshire, and Massachusetts (median listing prices ranged between just over 1600 dollars to 1800 dollars), and the states with the lowest priced listings were Mississippi, West Virginia, Oklahoma, Kansas, and Missouri (median listing prices ranged between just over 600 dollars to about 750 dollars). This makes sense in the context of housing trends: Hawaii, California, and states on the East Coast have notoriously high rent prices, while states in the lower Midwest and lower East tend to have more affordable rent. 
 
-\newpage
-
-```{r, echo = FALSE, fig.align = 'center', fig.height = 4, fig.width = 6, fig.cap = "Median Rent Price by State", warning = FALSE, message = FALSE}
+```{r, echo = FALSE, fig.align = 'center', fig.height = 5, fig.width = 7, fig.cap = "Median Rent Price by State", warning = FALSE, message = FALSE}
 data2 %>%
   group_by(`State Name`) %>%
   summarize(MedianPrice = median(price)) %>%
@@ -118,9 +114,7 @@ data2 %>%
 Our final model predicted the prices of apartments listed on Craigslist using information about the number of bedrooms, number of bathrooms, square footage, whether pets were allowed, and whether smoking was allowed for each individual listing. It also included information at the state level, including median income, political party of the governor, population density, median property tax rate, percentage of white people and percentage of black people. Our model had a random intercept for the state variable, in order to adjust for the fact that listing prices are likely correlated within each state.
 1,047 of the listings were from a state with a Republican governor, while the other 929 had a Democratic governor. 1,442 of them allowed both cats and dogs as pets, and 532 banned cats, dogs, or both. 1,511 of them allowed smoking, while the remaining 465 did not.
 
-The response variable, price,  was initially very right skewed, so we log transformed it. We also scaled square feet and median income. Summary statistics for the original distributions of square footage and median income are in the table above, but both price and the log of price are included. 
-
-\newpage
+The response variable, price,  was initially very right skewed, so we log transformed it. We also scaled square feet and median income. 
 
 Our final model had the form:
 
@@ -150,8 +144,6 @@ $\beta_4$ & -0.033 & 0.016 & -2.107 \\
 \end{tabular} \newline
 
 For each individual listing, the square footage of the rental, along with the number of bedrooms and bathrooms were significant in predicting the price. Specifically, one additional bathroom was associated with an increase in median price by a factor of 1.07. An increase by one standard deviation in the square footage of a listing is associated with an increase in median price by a factor of 1.22. Interestingly, additional bedrooms are associated with lower housing prices. An additional bedroom is associated with a 0.88 multiplicative decrease in median housing price. With 95% confidence, an additional bedroom suggests a decrease in median price by a factor between 0.858 and 0.905. In addition to these three variables, binary variables capturing if pets were allowed and if smoking was allowed were also significant. Apartments that permitted pets were associated with an increase in price by a factor of 1.07 compared to those that did not, but apartments that permitted smoking were associated with a decrease in price by a factor of 0.97 compared to those that did permit smoking. 
-
-\newpage
 
 Four variables consisting of information about the state where the listing was posted were also significant. Of these, higher median income of a state was associated with higher prices, while Republican governors, higher property tax rates, and higher population densities were associated with lower prices. An increase by one standard deviation in median income of a state was associated with an increase in median housing price for listings in that state by a factor of 1.18, while an increase by one percentage point in the median property tax rate is associated with a decrease in median housing price by a factor of 0.91. Listings in states with Republican governors are associated with a drop in price by a factor of 0.89 compared to listings in states with Democratic governors. Finally, an additional person per square foot in the population density of a state is associated with a multiplicative increase by 1.0002 in the median housing price.
 
@@ -185,9 +177,26 @@ cd <- cooks.distance(housing.lmer.fix4.2)
 plot(cd, type = "h", main = "Figure A.2: Cook's Distance Plot")
 ```
 
+## Appendix B: Histograms of Price
+
+```{r, echo = FALSE, fig.width = 6, fig.height = 4}
+# distribution of price is skewed right
+ggplot(data) + geom_histogram(aes(x = price), color = "white", bins = 25) +
+  labs(title = "Figure B.1: Histogram of Price, Untransformed")
+```
+
+```{r, echo = FALSE, fig.width = 6, fig.height = 4}
+# price distribution is more symmetric when removed prices of 0 and 1
+# and log-transformed price
+data %>%
+  filter(price > 5) %>%
+  ggplot() + geom_histogram(aes(x = log(price)), color = "white", bins = 25) +
+  labs(title = "Figure B.2: Histogram of log(Price)")
+```
+
 \newpage
 
-## Appendix B: Resources
+## Appendix C: Resources
 
 Ballotpedia. (2020). Partisan Composition of Governors. Retrieved from: https://ballotpedia.org/Partisan_composition_of_governors
 
