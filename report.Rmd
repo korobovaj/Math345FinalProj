@@ -147,9 +147,9 @@ $\beta_4$ & -0.033 & 0.016 & -2.107 \\
 \hline
 \end{tabular} \newline
 
-\newpage
-
 For each individual listing, the square footage of the rental, along with the number of bedrooms and bathrooms were significant in predicting the price. Specifically, one additional bathroom was associated with an increase in median price by a factor of 1.07. An increase by one standard deviation in the square footage of a listing is associated with an increase in median price by a factor of 1.22. Interestingly, additional bedrooms are associated with lower housing prices. An additional bedroom is associated with a 0.88 multiplicative decrease in median housing price. With 95% confidence, an additional bedroom suggests a decrease in median price by a factor between 0.858 and 0.905. In addition to these three variables, binary variables capturing if pets were allowed and if smoking was allowed were also significant. Apartments that permitted pets were associated with an increase in price by a factor of 1.07 compared to those that did not, but apartments that permitted smoking were associated with a decrease in price by a factor of 0.97 compared to those that did permit smoking. 
+
+\newpage
 
 Four variables consisting of information about the state where the listing was posted were also significant. Of these, higher median income of a state was associated with higher prices, while Republican governors, higher property tax rates, and higher population densities were associated with lower prices. An increase by one standard deviation in median income of a state was associated with an increase in median housing price for listings in that state by a factor of 1.18, while an increase by one percentage point in the median property tax rate is associated with a decrease in median housing price by a factor of 0.91. Listings in states with Republican governors are associated with a drop in price by a factor of 0.89 compared to listings in states with Democratic governors. Finally, an additional person per square foot in the population density of a state is associated with a multiplicative increase by 1.0002 in the median housing price.
 
