@@ -1,5 +1,5 @@
 ---
-title: "Code Appendix"
+title: "Math 345 Final Project: Code Appendix"
 author: "Jaylin Lowe and Jenna Korobova"
 date: "6/8/2020"
 output: html_document
