@@ -34,22 +34,6 @@ Tax Rate & 0.32 & 0.77 & 1.02 & 1.17 & 1.61 & 2.31 & 0.53 \\
 \hline
 \end{tabular}
 
-```{r, echo = FALSE, fig.align = 'center', fig.cap = "Median Rent Price by State"}
-data <- read_csv("housingSubset.csv")
-data2 <- data %>%
-  filter(price > 5) %>%
-  filter(state != "dc") %>%
-  mutate(pets_allowed = ifelse(cats_allowed == 1 & dogs_allowed == 1, 1, 0))
-
-data2 %>%
-  group_by(`State Name`) %>%
-  summarize(MedianPrice = median(price)) %>%
-  ggplot() + geom_bar(aes(x = reorder(`State Name`, MedianPrice), y = MedianPrice), stat = "identity", fill = "cadetblue", alpha = 0.8) + 
-  coord_flip() + 
-  scale_y_continuous(breaks = seq(0, 2000, 200)) +
-  labs(y = "Median Price", x = "State", title = "Median Rent Price By State ") + theme(axis.text.y = element_text(size = 7))
-```
-
 ```{r, echo = FALSE, fig.align = 'center', fig.cap = "Boxplots for Level 1 Dummy Variables by Rent Price", fig.height = 4, fig.width = 6}
 data2$pets_allowed2 <- factor(data2$pets_allowed, levels = c(0,1), labels = c("No", "Yes"))
 data2$smoking_allowed2 <- factor(data2$smoking_allowed, levels = c(0,1), labels = c("No", "Yes"))
@@ -82,6 +66,22 @@ p4 <- ggplot(data2) +
   scale_y_continuous(breaks = seq(0, 5000, 500))
 
 grid.arrange(p1, p2, p3, p4, ncol = 2)
+```
+
+```{r, echo = FALSE, fig.align = 'center', fig.cap = "Median Rent Price by State"}
+data <- read_csv("housingSubset.csv")
+data2 <- data %>%
+  filter(price > 5) %>%
+  filter(state != "dc") %>%
+  mutate(pets_allowed = ifelse(cats_allowed == 1 & dogs_allowed == 1, 1, 0))
+
+data2 %>%
+  group_by(`State Name`) %>%
+  summarize(MedianPrice = median(price)) %>%
+  ggplot() + geom_bar(aes(x = reorder(`State Name`, MedianPrice), y = MedianPrice), stat = "identity", fill = "cadetblue", alpha = 0.8) + 
+  coord_flip() + 
+  scale_y_continuous(breaks = seq(0, 2000, 200)) +
+  labs(y = "Median Price", x = "State", title = "Median Rent Price By State ") + theme(axis.text.y = element_text(size = 7))
 ```
 
 Level 1: $E(\log(\text{Price})_{i,j}) = a_i + \beta_0\text{scale(sqfeet)}_{i,j} + \beta_1\text{beds}_{i,j} + \beta_2\text{baths}_{i,j} + \beta_3\text{petsAllowed}_{i,j} + \beta_4\text{smokingAllowed} + \epsilon_{i,j}$ \newline
