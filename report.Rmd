@@ -14,6 +14,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(wesanderson)
 library(gridExtra)
+library(lme4)
+library(HLMdiag)
 ```
 
 ## Introduction
@@ -22,7 +24,7 @@ Since its establishment in 1995, Craigslist has been a widely used online resour
 
 ## Methods
 
-Our analysis is based on a dataset obtained from Kaggle. The original dataset consisted of 384,977 observations, where each observation was a privately sold housing option displayed on Craigslist in January of 2020. It contains information about each housing option, including the state, city/region, price, type of building, square footage, number of bedrooms, number of bathrooms, whether cats or dogs were allowed, whether smoking was allowed, if there was wheelchair access, if there was a charging station for electrical vehicles, and if furniture was included. However, we also obtained state level data and added that information to the dataset. Median income, population, and land area were all obtained from the Census Bureau. We also included whether a state had the death penalty or not, the median tax property rate, the political party of the current governor, and the percentage of white and black people in each state. This information was obtained from deathpenalty.org, mortagecalculator.org, ballotpedia.org, and governing.com, respectively. Full citations can be found in Appendix A. 
+Our analysis is based on a dataset obtained from Kaggle. The original dataset consisted of 384,977 observations, where each observation was a privately sold housing option displayed on Craigslist in January of 2020. It contains information about each housing option, including the state, city/region, price, type of building, square footage, number of bedrooms, number of bathrooms, whether cats or dogs were allowed, whether smoking was allowed, if there was wheelchair access, if there was a charging station for electrical vehicles, and if furniture was included. However, we also obtained state level data and added that information to the dataset. Median income, population, and land area were all obtained from the Census Bureau. We also included whether a state had the death penalty or not, the median tax property rate, the political party of the current governor, and the percentage of white and black people in each state. This information was obtained from deathpenalty.org, mortagecalculator.org, ballotpedia.org, and governing.com, respectively. Full citations can be found in Appendix B. 
 
 \newpage
 
@@ -30,7 +32,7 @@ Since the original dataset included apartments, houses, flats, condominiums, and
 
 Since only about 1% of all observations had a charging station for electric vehicles, we decided to ignore that explanatory variable. We also combined variables tracking whether cats were allowed and whether dogs were allowed into one explanatory variable. This variable has a value of 1 for apartments where both dogs and cats were allowed, and 0 otherwise. After these modifications, the final explanatory variables we considered for modeling were: price, number of bedrooms, number of bathrooms, square footage, if pets were allowed, if smoking was allowed, if there was wheelchair access, if furniture was included, median income of the state (in dollars), political party of the state’s governor, population density of the state (in people per square mile), median property tax rate of the state, whether the death penalty was legal in the state, and the percentages of black and white people in the state. 
 
-Our strategy for building multilevel models began with exploratory data analysis at each level. We first explored the effects of random intercept by comparing an unconditional means model and random intercept model grouping by state. We then used simulation to test if we needed random slopes for some of our variables. Since testing for random slopes on our variables resulted in overly complex models, we only looked at random slopes for listing level variables that our exploratory data analysis suggested might be significant. These variables were: number of bedrooms, number of bathrooms, and square footage. Our simulation revealed that random slopes for these variables were unnecessary, so we proceeded with investigating the fixed effects for all variables with only a random intercept for state. 
+Our strategy for building multilevel models began with exploratory data analysis at each level. We first explored the effects of random intercept by comparing an unconditional means model and random intercept model grouping by state. We then used simulation to test if we needed random slopes for some of our variables. Since testing for random slopes on our variables resulted in overly complex models, we only looked at random slopes for listing level variables that our exploratory data analysis suggested might be significant. These variables were: number of bedrooms, number of bathrooms, and square footage. Our simulation revealed that random slopes for these variables were unnecessary, so we proceeded with investigating the fixed effects for all variables with only a random intercept for state. We also investigated the Cook's distance plot and the standardized marginal residuals in order to check for outliers. There were three observations with extreme residual values (Appendix A, Figure A.1), and these were subsequently removed. Two points also had extremely large Cook's distance values (Appendix A, Figure A.2), and these were also removed.
 
 ## Results 
 
@@ -160,3 +162,44 @@ Our analysis suggests that many aspects of both an apartment itself and attribut
 Attributes of the states the listings were posted in are also significant predictors of price. Prices are higher in states with higher median incomes, likely because property values tend to be higher in areas with strong economies. Housing prices are also driven up by a lack of housing, which is more common in areas with higher population density, likely explaining why we found that higher population density is associated with higher prices. Republicans tend to be governors in states with more rural areas, since cities tend to be largely Democratic, which agrees with our assessment that listings in states with Republican governors tend to have lower prices. Higher tax rates were also associated with lower prices, which we found surprising. We expected that higher tax rates would be an indicator of more liberal areas, which would have higher prices. Alternatively, we expected that rent prices may reflect the higher tax rates, since landlords might need to charge higher prices in order to be able to pay the property tax. However, our analysis suggests the opposite. We were not sure what might explain this phenomenon, so more research on property taxes might be illustrative. 
 
 The nature of our resources prevented us from being able to consider all of the nearly 400,000 observations in the dataset, thus future work may choose to consider a more comprehensive approach to the data and fit models that take in all of the observations. We hope that our random sample of 2,000 observations was representative, though an analysis that includes all of the observations may nonetheless yield models that differ from our final model. Furthermore, by limiting the scope of our analysis of price, we removed the region variable that the original dataset contained. However, this variable may have been an informative third level to consider in our hierarchical model and thus may be worth exploring in future work. Finally, because we removed Washington D.C. Craigslist listings from our dataset, it might be useful to consider D.C. listings and their characteristics in future work. Rent in Washington D.C. tends to be expensive, and thus those listings may be important to include.
+
+\newpage
+
+## Appendix A: Diagnostic Plots
+
+```{r, echo = FALSE, fig.width = 6, fig.height = 4}
+data2 <- data %>%
+  filter(price > 5) %>%
+  filter(state != "dc") %>%
+  mutate(pets_allowed = ifelse(cats_allowed == 1 & dogs_allowed == 1, 1, 0))
+housing.lmer.fix4 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + PopDensity + TaxRate + (1|state), data = data2, REML = FALSE)
+x <- HLMresid(housing.lmer.fix4, level = "marginal", standardize = TRUE)
+plot(x ~ sqfeet, data = data2, main = "Figure A.1: Marginal Standardized Residuals", xlab = "Square Feet")
+abline(h= 0)
+```
+
+```{r, echo = FALSE, fig.width = 6, fig.height = 4}
+data3 <- data2[-c(79, 1579, 1770), ]
+housing.lmer.fix4.2 <- lmer(log(price) ~ scale(sqfeet) + beds + baths + pets_allowed + smoking_allowed + scale(MedianIncome) + Governor + PopDensity + TaxRate + (1|state), data = data3, REML = FALSE)
+cd <- cooks.distance(housing.lmer.fix4.2)
+plot(cd, type = "h", main = "Figure A.2: Cook's Distance Plot")
+```
+
+\newpage
+
+## Appendix B: Resources
+
+Ballotpedia. (2020). Partisan Composition of Governors. Retrieved from: https://ballotpedia.org/Partisan_composition_of_governors
+
+Death Penalty Information Center. (2020). States with and without the Death Penalty. Retrieved from: https://deathpenaltyinfo.org/state-and-federal-info/state-by-state
+
+Governing. (2017). State Population by Race, Ethnicity, Data. Retrieved from: https://www.governing.com/gov-data/census/state-minority-population-data-estimates.html
+
+Mortgage Calculator. (2016). Highest and Lowest Property Tax States. Retrieved from: https://www.mortgagecalculator.org/helpful-advice/property-taxes.php
+
+U.S. Census Bureau. (2018). Median Income in the Past 12 Months. Retrieved from: https://data.census.gov/cedsci/table?q=INCOME%20IN%20THE%20PAST%2012%20MONTHS%20&tid=ACSST1Y2018.S1903&t=Income%20%28Households,%20Families,%20Individuals%29&vintage=2018&g=0100000US.04000.001&hidePreview=true
+
+U.S. Census Bureau. (2019). Annual Estimates of the Resident Population for the United States, Regions, States, and Puerto Rico: April 1, 2010 to July 1, 2019. Retrieved from: https://www.census.gov/data/datasets/time-series/demo/popest/2010s-state-total.html
+
+U.S. Census Bureau. (2018). State Area Measurements and Internal Point Coordinates. Retrieved from: https://www.census.gov/geographies/reference-files/2010/geo/state-area.html
+
