@@ -1,7 +1,7 @@
 ---
-title: "DataManip"
-author: "Jenna Korobova"
-date: "6/3/2020"
+title: "Code Appendix"
+author: "Jaylin Lowe and Jenna Korobova"
+date: "6/8/2020"
 output: html_document
 ---
 
