@@ -13,6 +13,26 @@ library(tidyverse)
 library(wesanderson)
 library(gridExtra)
 ```
+# Introduction
+
+# Methods
+
+# Results 
+
+\begin{tabular}{cccccccc}
+\hline
+Variable & Minimum & 1st Quartile& Median & Mean & 3rd Quartile & Max & SD \\ 
+\hline
+Price & 25.00 & 800.00 & 1005.00 & 1138.00 & 1350.00 & 4845.00 & 509.53 \\
+Log(Price) & 3.23 & 6.69 &6. 92 & 6.95 & 7.21 & 8.49 & 0.42 \\
+Bedrooms & 0.00 & 1.00 & 2.00 & 1.72 & 2.00 & 5.00 & 0.75 \\
+Bathrooms & 0.00 & 1.00 & 1.00 & 1.42 & 2.00 & 4.50 & 0.55 \\
+Square Footage & 25.00 & 724.80 & 900.00 & 913.10 & 1063.20 & 5600.00 & 296.02 \\
+Median Income & 44097.00 & 55462.00 & 59995.00 & 61738.00 & 70315.00 & 83242.00 & 9275.55\\
+Population Density & 1.01 & 88.05 & 156.24 & 186.24 & 241.38 & 1018.25 & 166.54 \\
+Tax Rate & 0.32 & 0.77 & 1.02 & 1.17 & 1.61 & 2.31 & 0.53 \\ 
+\hline
+\end{tabular}
 
 ```{r, echo = FALSE, fig.align = 'center', fig.cap = "Median Rent Price by State"}
 data <- read_csv("housingSubset.csv")
@@ -64,22 +84,6 @@ p4 <- ggplot(data2) +
 grid.arrange(p1, p2, p3, p4, ncol = 2)
 ```
 
-\begin{tabular}{cccccccc}
-\hline
-Variable & Minimum & 1st Quartile& Median & Mean & 3rd Quartile & Max & SD \\ 
-\hline
-Price & 25.00 & 800.00 & 1005.00 & 1138.00 & 1350.00 & 4845.00 & 509.53 \\
-Log(Price) & 3.23 & 6.69 &6. 92 & 6.95 & 7.21 & 8.49 & 0.42 \\
-Bedrooms & 0.00 & 1.00 & 2.00 & 1.72 & 2.00 & 5.00 & 0.75 \\
-Bathrooms & 0.00 & 1.00 & 1.00 & 1.42 & 2.00 & 4.50 & 0.55 \\
-Square Footage & 25.00 & 724.80 & 900.00 & 913.10 & 1063.20 & 5600.00 & 296.02 \\
-Median Income & 44097.00 & 55462.00 & 59995.00 & 61738.00 & 70315.00 & 83242.00 & 9275.55\\
-Population Density & 1.01 & 88.05 & 156.24 & 186.24 & 241.38 & 1018.25 & 166.54 \\
-Tax Rate & 0.32 & 0.77 & 1.02 & 1.17 & 1.61 & 2.31 & 0.53 \\ 
-\hline
-\end{tabular}
-
-
 Level 1: $E(\log(\text{Price})_{i,j}) = a_i + \beta_0\text{scale(sqfeet)}_{i,j} + \beta_1\text{beds}_{i,j} + \beta_2\text{baths}_{i,j} + \beta_3\text{petsAllowed}_{i,j} + \beta_4\text{smokingAllowed} + \epsilon_{i,j}$ \newline
 Level 2: $a_i = \alpha_0 + \alpha_1\text{scale(MedianIncome)}_{i} + \alpha_2\text{Governor}_i + \alpha_3\text{PopDensity}_i + \alpha_4\text{TaxRate}_i + u_i$ \newline
 where $\epsilon \sim N(0, \sigma^2)$ and $u_i \sim N(0, {\sigma_b}^2)$
@@ -101,4 +105,4 @@ $\beta_4$ & -0.033 & 0.016 & -2.107 \\
 \hline
 \end{tabular}
 
-
+# Discussion
